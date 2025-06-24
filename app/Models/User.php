@@ -1,0 +1,151 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable, HasApiTokens ;
+
+
+    protected $fillable = [
+        'name',
+        'email',
+        'username',
+        'password',
+        'referral_code',
+        'referred_by',
+        'phone',
+        'avatar',
+        'is_active'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'is_active' => 'boolean'
+    ];
+
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referred_by');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referred_by');
+    }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function deposits()
+    {
+        return $this->hasMany(Deposit::class);
+    }
+
+    public function withdrawals()
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+
+    public function referralEarnings()
+    {
+        return $this->hasMany(ReferralEarning::class);
+    }
+
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            $user->referral_code = self::generateReferralCode();
+        });
+
+        static::created(function ($user) {
+            $user->wallet()->create([
+                'balance' => 10.00, // Signup bonus
+                'active_balance' => 10.00
+            ]);
+
+            $user->transactions()->create([
+                'amount' => 10.00,
+                'type' => 'signup_bonus',
+                'status' => 'completed'
+            ]);
+
+            if ($user->referrer) {
+                $user->referrer->referralEarnings()->create([
+                    'referred_user_id' => $user->id,
+                    'level' => 1,
+                    'amount' => 10.00, // Direct reward (10% of $100 deposit equivalent)
+                    'type' => 'signup'
+                ]);
+            }
+        });
+    }
+
+    private static function generateReferralCode()
+    {
+        $code = strtoupper(Str::random(8));
+        if (self::where('referral_code', $code)->exists()) {
+            return self::generateReferralCode();
+        }
+        return $code;
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+public function referralTeamWithLevels(int $maxLevel = 5)
+{
+    $team = [];
+    $currentLevelUsers = [$this->id];
+
+    for ($level = 1; $level <= $maxLevel; $level++) {
+        $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)->get();
+
+        if ($nextLevelUsers->isEmpty()) break;
+
+        foreach ($nextLevelUsers as $user) {
+            $team[] = [
+                'user' => $user,
+                'level' => $level
+            ];
+        }
+
+        $currentLevelUsers = $nextLevelUsers->pluck('id')->toArray();
+    }
+
+    return $team;
+}
+public function getTeamAttribute()
+{
+    return $this->referralTeamWithLevels();
+}
+}
