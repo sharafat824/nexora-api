@@ -50,26 +50,27 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    public function changePassword(Request $request)
-    {
-        $request->validate([
-            'current_password' => 'required',
-            'new_password' => ['required', 'confirmed', Password::min(8)]
-        ]);
+        public function changePassword(Request $request)
+        {
+            $request->validate([
+                'current_password' => 'required',
+                'new_password' => 'required|string|min:8|confirmed',
+                'new_password_confirmation' => 'required_with:new_password|same:new_password',
+            ]);
 
-        $user = $request->user();
+            $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json([
-                'message' => 'Current password is incorrect'
-            ], 422);
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'message' => 'Current password is incorrect'
+                ], 422);
+            }
+
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            return success([], 'Password changed successfully');
         }
-
-        $user->password = Hash::make($request->new_password);
-        $user->save();
-
-        return success([], 'Password changed successfully');
-    }
 
     public function index(Request $request)
     {

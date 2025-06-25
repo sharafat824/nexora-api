@@ -87,24 +87,24 @@ class User extends Authenticatable
 
         static::created(function ($user) {
             $user->wallet()->create([
-                'balance' => 10.00, // Signup bonus
-                'active_balance' => 10.00
+                'balance' => 0, // Signup bonus
+                'active_balance' => 0
             ]);
 
-            $user->transactions()->create([
-                'amount' => 10.00,
-                'type' => 'signup_bonus',
-                'status' => 'completed'
-            ]);
+            // $user->transactions()->create([
+            //     'amount' => 10.00,
+            //     'type' => 'signup_bonus',
+            //     'status' => 'completed'
+            // ]);
 
-            if ($user->referrer) {
-                $user->referrer->referralEarnings()->create([
-                    'referred_user_id' => $user->id,
-                    'level' => 1,
-                    'amount' => 10.00, // Direct reward (10% of $100 deposit equivalent)
-                    'type' => 'signup'
-                ]);
-            }
+            // if ($user->referrer) {
+            //     $user->referrer->referralEarnings()->create([
+            //         'referred_user_id' => $user->id,
+            //         'level' => 1,
+            //         'amount' => 10.00, // Direct reward (10% of $100 deposit equivalent)
+            //         'type' => 'signup'
+            //     ]);
+            // }
         });
     }
 
@@ -144,6 +144,52 @@ public function referralTeamWithLevels(int $maxLevel = 5)
 
     return $team;
 }
+
+public function referralTeamWithCommission(int $maxLevel = 5)
+{
+    $team = [];
+    $currentLevelUsers = [$this->id];
+
+    // Define how much % commission per level
+    $levelCommissions = [
+        1 => 0.10, // 10%
+        2 => 0.05, // 5%
+        3 => 0.03, // 3%
+        4 => 0.02, // 2%
+        5 => 0.01  // 1%
+    ];
+
+    for ($level = 1; $level <= $maxLevel; $level++) {
+        $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)->get();
+
+        if ($nextLevelUsers->isEmpty()) break;
+
+        foreach ($nextLevelUsers as $user) {
+            // Get sum of deposits from this user
+            $baseAmount = $user->deposits()->sum('amount'); // Or use earnings
+            $commission = $baseAmount * ($levelCommissions[$level] ?? 0);
+
+            $team[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'level' => $level,
+                'commission' => $commission,
+                'joined_at' => $user->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        $currentLevelUsers = $nextLevelUsers->pluck('id')->toArray();
+    }
+
+    return $team;
+}
+
+public function getTeamWithCommissionAttribute()
+{
+    return $this->referralTeamWithCommission();
+}
+
 public function getTeamAttribute()
 {
     return $this->referralTeamWithLevels();

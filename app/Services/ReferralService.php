@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use App\Models\CommissionLevel;
 use App\Models\User;
 
 class ReferralService
@@ -70,59 +71,38 @@ class ReferralService
             'type' => 'deposit_commission'
         ]);
     }
+public function distributeCommissions(User $buyer, float $amount)
+{
+    $current = $buyer;
+    $level = 1;
 
-    public function getTeamStats(User $user)
-    {
-        $stats = [];
+    $commissionRates = [
+        1 => 0.10,
+        2 => 0.05,
+        3 => 0.03,
+        4 => 0.02,
+        5 => 0.01,
+    ];
 
-        for ($level = 1; $level <= 3; $level++) {
-            $team = $this->getLevel($user, $level);
+    while ($level <= 5 && $current->referred_by) {
+        $referrer = User::find($current->referred_by);
+        if (!$referrer) break;
 
-            $stats[] = [
-                'level' => $level,
-                'count' => $team->count(),
-                'total_investment' => $team->sum(function($member) {
-                    return $member->deposits()->where('status', 'completed')->sum('amount');
-                }),
-                'earnings' => $user->referralEarnings()
-                    ->where('level', $level)
-                    ->sum('amount')
-            ];
-        }
+        $rate = $commissionRates[$level] ?? 0;
+        $commissionAmount = $amount * $rate;
 
-        return $stats;
+        CommissionLevel::create([
+            'user_id' => $referrer->id,
+            'from_user_id' => $buyer->id,
+            'level' => $level,
+            'amount' => $commissionAmount,
+        ]);
+
+        // For debugging/logging:
+        echo "Level {$level} | {$referrer->name} earns \${$commissionAmount} from {$buyer->name}\n";
+
+        $current = $referrer;
+        $level++;
     }
-
-    public function getTeamMembers(User $user, $level = 1)
-    {
-        $members = $this->getLevel($user, $level)->load('wallet', 'deposits');
-
-        return $members->map(function($member) {
-            return [
-                'id' => $member->id,
-                'name' => $member->name,
-                'username' => $member->username,
-                'joined_at' => $member->created_at->format('Y-m-d'),
-                'investment' => $member->deposits()
-                    ->where('status', 'completed')
-                    ->sum('amount'),
-                'wallet_balance' => $member->wallet->balance
-            ];
-        });
-    }
-
-    protected function getLevel(User $user, $level, $currentLevel = 1)
-    {
-        if ($currentLevel == $level) {
-            return $user->referrals;
-        }
-
-        $team = collect();
-
-        foreach ($user->referrals as $referral) {
-            $team = $team->merge($this->getLevel($referral, $level, $currentLevel + 1));
-        }
-
-        return $team;
-    }
+}
 }
