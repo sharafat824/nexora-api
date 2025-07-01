@@ -83,23 +83,34 @@ public function distributeCommissions(User $buyer, float $amount)
         4 => 0.02,
         5 => 0.01,
     ];
-
     while ($level <= 5 && $current->referred_by) {
         $referrer = User::find($current->referred_by);
         if (!$referrer) break;
 
         $rate = $commissionRates[$level] ?? 0;
         $commissionAmount = $amount * $rate;
+        $referrer->wallet->increment('balance', $commissionAmount);
+        $referrer->wallet->increment('total_earnings', $commissionAmount);
 
-        CommissionLevel::create([
-            'user_id' => $referrer->id,
-            'from_user_id' => $buyer->id,
+          // Record transaction
+        $referrer->transactions()->create([
+            'amount' => $amount,
+            'type' => 'referral_commission',
             'level' => $level,
-            'amount' => $commissionAmount,
+            'status' => 'completed',
+            'reference_id' => $buyer->id
+        ]);
+
+        // Record referral earnings
+        $referrer->referralEarnings()->create([
+            'referred_user_id' => $buyer->id,
+            'level' => $level,
+            'amount' => $amount,
+            'type' => 'referral_commission'
         ]);
 
         // For debugging/logging:
-        echo "Level {$level} | {$referrer->name} earns \${$commissionAmount} from {$buyer->name}\n";
+    //    echo "Level {$level} | {$referrer->name} earns \${$commissionAmount} from {$buyer->name}\n";
 
         $current = $referrer;
         $level++;

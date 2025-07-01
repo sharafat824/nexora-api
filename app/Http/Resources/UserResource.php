@@ -19,11 +19,13 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'username' => $this->username,
+            'is_admin' => $this->is_admin,
             'phone' => $this->phone,
             'avatar' => $this->avatar ? asset('storage/'.$this->avatar) : null,
             'referral_code' => $this->referral_code,
             'created_at' => $this->created_at,
-            'wallet' => WalletResource::make($this->whenLoaded('wallet'))
+            'wallet' => WalletResource::make($this->whenLoaded('wallet')),
+            'withdrawal_password' => '*****************', // Masked for security
         ];
     }
 }

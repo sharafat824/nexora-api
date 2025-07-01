@@ -79,7 +79,7 @@ class DepositController extends Controller
         ]);
 
         // Pay referral commissions
-        $this->referralService->payCommissions($deposit->user, $deposit->amount);
+        $this->referralService->distributeCommissions($deposit->user, $deposit->amount);
 
         return response()->json([
             'message' => 'Deposit approved successfully',

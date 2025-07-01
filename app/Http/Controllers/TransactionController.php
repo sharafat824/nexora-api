@@ -2,17 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\DepositResource;
 use Illuminate\Http\Request;
 use App\Http\Resources\TransactionResource;
+use App\Http\Resources\WithdrawalResource;
 
 class TransactionController extends Controller
 {
-     public function index(Request $request)
-    {
-        $transactions = $request->user()->transactions()
-            ->latest()
-            ->paginate(15);
+ public function index(Request $request)
+{
+    $perPage = $request->perPage ?? 10;
+    $type = $request->type;
 
-        return TransactionResource::collection($transactions);
+    switch ($type) {
+        case 'deposit':
+            $transactions = $request->user()->deposits()->latest()->paginate($perPage);
+            return DepositResource::collection($transactions);
+
+        case 'withdraw':
+            $transactions = $request->user()->withdrawals()->latest()->paginate($perPage);
+            return WithdrawalResource::collection($transactions);
+
+        default:
+            $transactions = $request->user()->transactions()->latest()->paginate($perPage);
+            return TransactionResource::collection($transactions);
     }
+}
+
 }

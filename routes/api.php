@@ -46,6 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Withdrawal routes
     Route::get('/withdrawals', [WithdrawalController::class, 'index']);
     Route::post('/withdrawals', [WithdrawalController::class, 'store']);
+    Route::post('/withdrawals/send-otp', [WithdrawalController::class, 'sendOtp']);
+
 
     // Referral routes
     Route::get('/referrals', [ReferralController::class, 'index']);
