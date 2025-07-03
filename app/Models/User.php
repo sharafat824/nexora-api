@@ -24,7 +24,8 @@ class User extends Authenticatable
         'referred_by',
         'phone',
         'avatar',
-        'is_active'
+        'is_active',
+        'is_commission_distributed'
     ];
 
     protected $hidden = [

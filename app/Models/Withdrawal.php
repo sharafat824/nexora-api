@@ -20,6 +20,9 @@ class Withdrawal extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function transaction()  {
+        return $this->hasOne(Transaction::class, 'reference_id');
+    }
     public function getNetAmountAttribute()
     {
         return $this->amount - $this->fee;

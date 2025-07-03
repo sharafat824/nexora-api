@@ -25,7 +25,12 @@ class WithdrawalResource extends JsonResource
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'formatted_amount' => number_format($this->amount, 2),
             'formatted_fee' => number_format($this->fee, 2),
-            'formatted_net_amount' => number_format($this->net_amount, 2)
+            'formatted_net_amount' => number_format($this->net_amount, 2),
+              'user' => [
+                'id'    => $this->user->id,
+                'name'  => $this->user->name,
+                'email' => $this->user->email,
+            ],
         ];
     }
 }

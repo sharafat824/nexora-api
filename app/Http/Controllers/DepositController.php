@@ -52,38 +52,4 @@ class DepositController extends Controller
 
         return new DepositResource($deposit);
     }
-
-    public function approveDeposit(Deposit $deposit)
-    {
-        // This would typically be in an AdminController
-        // Included here for completeness
-
-        if ($deposit->status !== 'pending') {
-            return response()->json([
-                'message' => 'Deposit already processed'
-            ], 400);
-        }
-
-        $deposit->status = 'completed';
-        $deposit->save();
-
-        // Credit user's wallet
-        $deposit->user->wallet->deposit($deposit->amount);
-
-        // Record transaction
-        $deposit->user->transactions()->create([
-            'amount' => $deposit->amount,
-            'type' => 'deposit',
-            'status' => 'completed',
-            'reference_id' => $deposit->id
-        ]);
-
-        // Pay referral commissions
-        $this->referralService->distributeCommissions($deposit->user, $deposit->amount);
-
-        return response()->json([
-            'message' => 'Deposit approved successfully',
-            'deposit' => new DepositResource($deposit)
-        ]);
-    }
 }
