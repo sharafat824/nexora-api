@@ -16,6 +16,12 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get('/platform-status', function () {
+    return response()->json([
+        'maintenance_mode' => (bool) platform_setting('maintenance_mode') // use helper or model directly
+    ]);
+});
+
 Route::get('/auth/google', [SocialAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\PlatformSetting;
 use Illuminate\Http\JsonResponse;
 
 if (!function_exists('success')) {
@@ -21,5 +22,10 @@ if (!function_exists('error')) {
             'errors'  => $errors,
             'status'  => $status,
         ], $status);
+    }
+}
+if (!function_exists('platform_setting')) {
+    function platform_setting($key, $default = null) {
+        return PlatformSetting::where('key', $key)->value('value') ?? $default;
     }
 }

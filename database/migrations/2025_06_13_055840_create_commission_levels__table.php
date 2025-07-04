@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('commission_levels_', function (Blueprint $table) {
+        Schema::create('commission_levels', function (Blueprint $table) {
             $table->id();
             $table->integer('level');
             $table->decimal('percentage', 5, 2);
             $table->string('type'); // 'signup', 'deposit', etc.
             $table->timestamps();
-
             $table->unique(['level', 'type']);
         });
     }

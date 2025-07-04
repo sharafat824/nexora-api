@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminDepositController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -26,6 +27,15 @@ Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(func
     Route::put('/deposits/{deposit}/status', [AdminDepositController::class, 'approveDeposit']);
     Route::get('/withdrawals', [AdminWithdrawalController::class, 'index']);
     Route::put('/withdrawals/{withdrawal}/status', [AdminWithdrawalController::class, 'approveWithdraw']);
+
+    Route::post('/users/{user}/impersonate', [AdminUserController::class, 'impersonate']);
+
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [SettingController::class, 'index']);
+        Route::post('/general', [SettingController::class, 'updateGeneral']);
+        Route::post('/commissions', [SettingController::class, 'updateCommissions']);
+
+    });
 
     // More admin routes...
 });

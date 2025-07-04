@@ -15,13 +15,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // User::factory(10)->create();
-    // $this->call(ReferralSeeder::class);
+        // $this->call(ReferralSeeder::class);
 
         // User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        User::updateOrCreate(['email' => 'admin@test.com'],[
+        $this->call([
+            SettingsAndCommissionsSeeder::class,
+        ]);
+        User::updateOrCreate(['email' => 'admin@test.com'], [
             'name' => 'Admin',
             'username' => 'admin',
             'password' => bcrypt('password'),
