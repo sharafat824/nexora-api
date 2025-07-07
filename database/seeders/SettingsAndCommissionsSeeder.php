@@ -36,10 +36,32 @@ class SettingsAndCommissionsSeeder extends Seeder
             [
                 'key' => 'daily_commision',
                 'value' => '5',
-                'display_name' => 'Daily Commission',
+                'display_name' => 'Daily Commission (%)',
                 'group' => 'general',
                 'description' => 'Users daily commission.',
             ],
+            [
+                'key' => 'min_deposit',
+                'value' => 20,
+                'display_name' => "Minimum Deposit",
+                'group' => 'general',
+                'description' => 'Minimus deposit allow'
+            ],
+            [
+                'key' => 'min_withdraw',
+                'value' => 20,
+                'display_name' => "Minimum Withdraw",
+                'group' => 'general',
+                'description' => 'Minimus withdraw allow'
+            ],
+            [
+                'key' => 'withdraw_fee',
+                'value' => '5', // percent
+                'display_name' => 'Withdrawal Fee (%)',
+                'group' => 'general',
+                'description' => 'Percentage fee charged on each withdrawal.'
+            ],
+
         ];
 
         foreach ($generalSettings as $setting) {
@@ -58,12 +80,6 @@ class SettingsAndCommissionsSeeder extends Seeder
             ['level' => 4, 'percentage' => 2.00, 'type' => 'signup'],
             ['level' => 5, 'percentage' => 1.00, 'type' => 'signup'],
 
-            // Deposit Commissions
-            // ['level' => 1, 'percentage' => 7.00, 'type' => 'deposit'],
-            // ['level' => 2, 'percentage' => 4.00, 'type' => 'deposit'],
-            // ['level' => 3, 'percentage' => 2.50, 'type' => 'deposit'],
-            // ['level' => 4, 'percentage' => 1.50, 'type' => 'deposit'],
-            // ['level' => 5, 'percentage' => 1.00, 'type' => 'deposit'],
         ];
 
         foreach ($commissionLevels as $commission) {

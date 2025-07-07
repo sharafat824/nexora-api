@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -23,13 +24,16 @@ class WithdrawalController extends Controller
 
     public function store(Request $request)
     {
+        $minWithdraw = PlatformSetting::getValue('min_withdraw', 5); // fallback default if not found
+
         $request->validate([
-            'amount' => 'required|numeric|min:5',
+            'amount' => 'required|numeric|min:' . $minWithdraw,
             'wallet_address' => 'required|string',
             'otp' => 'required|string',
             'password' => 'required|string'
+        ], [
+            'amount.min' => "Minimum withdrawal amount is $minWithdraw."
         ]);
-
         $user = $request->user();
 
         if (!Hash::check($request->password, $user->withdrawal_password)) {
@@ -52,8 +56,10 @@ class WithdrawalController extends Controller
         $wallet = $user->wallet;
 
         // Calculate fee (5%)
-        $fee = $request->amount * 0.05;
+        $feePercentage = (float) PlatformSetting::getValue('withdraw_fee', 5); // default fallback 5%
+        $fee = $request->amount * ($feePercentage / 100);
         $total = $request->amount + $fee;
+
 
         if ($wallet->balance < $total) {
             return response()->json([
@@ -65,7 +71,7 @@ class WithdrawalController extends Controller
             DB::beginTransaction();
 
             // Deduct from balance
-           $wallet->withdraw($total);
+            $wallet->withdraw($total);
             $wallet->recordWithdrawal($request->amount);
 
             // Create withdrawal record

@@ -3,6 +3,7 @@
 use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\AdminChatController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminDepositController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -36,6 +37,13 @@ Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(func
         Route::post('/commissions', [SettingController::class, 'updateCommissions']);
 
     });
+
+    Route::get('/chat/users', [AdminChatController::class, 'getChatUsers']);
+    Route::get('/chat/messages/{user}', [AdminChatController::class, 'getMessages']);
+    Route::post('/chat/messages/{user}', [AdminChatController::class, 'sendMessage']);
+    Route::post('/chat/mark-read/{user}', [AdminChatController::class, 'markAsRead']);
+
+
 
     // More admin routes...
 });

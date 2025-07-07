@@ -63,6 +63,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // Chat routes
     Route::get('/chat', [ChatController::class, 'index']);
     Route::post('/chat', [ChatController::class, 'store']);
+    Route::post('/chat/mark-read', [ChatController::class, 'markAsRead']);
+    Route::get('/chat/unread-count', function (Request $request) {
+    $count = \App\Models\ChatMessage::where('user_id', $request->user()->id)
+        ->where('direction', 'in') // admin → user
+        ->where('read', false)
+        ->count();
+
+    return response()->json(['count' => $count]);
+});
+
+
 });
 
 require __DIR__ . '/admin.php';
