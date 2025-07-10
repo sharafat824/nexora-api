@@ -72,8 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     return response()->json(['count' => $count]);
 });
-
-
+    Route::get('earnings/daily', [TransactionController::class, 'dailyEarnings']);
 });
 
 require __DIR__ . '/admin.php';

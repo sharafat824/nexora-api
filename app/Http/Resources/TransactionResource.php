@@ -16,12 +16,13 @@ class TransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'amount' => $this->amount,
+            'amount' => (float) $this->amount,
             'type' => $this->type,
             'status' => $this->status,
             'description' => $this->description,
             'level' => $this->level,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'user' => UserResource::make($this->whenLoaded('user')),
             'formatted_amount' => ($this->amount > 0 ? '+' : '').number_format($this->amount, 2)
         ];
     }

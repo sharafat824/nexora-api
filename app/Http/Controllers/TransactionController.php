@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\DepositResource;
 use Illuminate\Http\Request;
 use App\Http\Resources\TransactionResource;
+use App\Http\Resources\UserResource;
 use App\Http\Resources\WithdrawalResource;
 
 class TransactionController extends Controller
@@ -28,5 +29,17 @@ class TransactionController extends Controller
             return TransactionResource::collection($transactions);
     }
 }
+public function dailyEarnings(Request $request)
+{
+    $user = $request->user();
 
+    $perPage = $request->get('per_page', 20);
+
+    $transactions = $user->transactions()
+        ->where('type', 'daily_income')
+        ->orderByDesc('created_at')
+        ->paginate($perPage);
+
+    return TransactionResource::collection($transactions)->additional(["user" => ['name' => $user->name, 'email'=> $user->email]]);
+}
 }
