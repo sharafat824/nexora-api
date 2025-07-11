@@ -40,23 +40,24 @@ class ChatController extends Controller
     $request->validate([
         'message' => 'required|string|max:1000',
         'user_id' => $request->user()->is_admin ? 'required|exists:users,id' : 'nullable',
+         'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf|max:2048',
     ]);
 
     $user = $request->user();
     $isAdmin = $user->is_admin;
 
+    $path = $request->hasFile('file')
+    ? $request->file('file')->store('chat_uploads', 'public')
+    : null;
+
+
     $message = new ChatMessage();
     $message->message = $request->message;
+    $message->file = $path;
     $message->direction = $isAdmin ? 'in' : 'out';
     $message->read = false;
-
-    if ($isAdmin) {
-        $message->admin_id = $user->id;
-        $message->user_id = $request->input('user_id');
-    } else {
-        $message->user_id = $user->id;
-    }
-
+    $message->user_id = $isAdmin ? $request->input('user_id') : $user->id;
+    $message->admin_id = $isAdmin ? $user->id : null;
     $message->save();
 
     return new ChatMessageResource($message);
