@@ -25,7 +25,8 @@ class User extends Authenticatable
         'phone',
         'avatar',
         'is_active',
-        'is_commission_distributed'
+        'is_commission_distributed',
+        'withdrawal_address'
     ];
 
     protected $hidden = [
