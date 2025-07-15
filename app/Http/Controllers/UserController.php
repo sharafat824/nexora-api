@@ -141,26 +141,24 @@ class UserController extends Controller
 
         $user = $request->user();
 
-        // Delete old avatar if it's a stored file
-        if ($user->avatar && str_starts_with($user->avatar, 'avatars/')) {
+        // Delete old avatar if it exists
+        if ($user->avatar && Storage::disk('uploads')->exists($user->avatar)) {
             Storage::disk('uploads')->delete($user->avatar);
         }
 
-        // Ensure folder exists
-        $uploadsPath = public_path('uploads/avatars');
+        // Ensure uploads/avatars folder exists
+        $uploadsPath = base_path('uploads/avatars');
         if (!File::exists($uploadsPath)) {
             File::makeDirectory($uploadsPath, 0755, true);
         }
-        // Store new avatar in public/uploads/avatars
-        $path = $request->file('avatar')->store('avatars', 'uploads');
 
-        // Save avatar path (e.g., avatars/xyz.jpg)
+        // Store new avatar to uploads/avatars
+        $path = $request->file('avatar')->store('avatars', 'uploads');
         $user->avatar = $path;
         $user->save();
 
-        // Return full public URL
         return response()->json([
-            'avatar' => asset('uploads/' . $user->avatar)
+            'avatar' => asset('uploads/' . $user->avatar) // ✅ Correct URL
         ]);
     }
 
