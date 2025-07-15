@@ -53,10 +53,9 @@ class UserController extends Controller
             $user->withdrawal_address = $request->withdrawal_address;
         }
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
+            $path = $request->file('avatar')->store('avatars', 'uploads'); // uses /public/uploads/avatars
             $user->avatar = $path;
         }
-
         if ($request->has('country')) {
             $user->country = $request->country;
         }
