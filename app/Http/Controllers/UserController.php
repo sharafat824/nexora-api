@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use App\Models\Announcement;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use App\Models\Transaction;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Password;
@@ -53,7 +54,15 @@ class UserController extends Controller
             $user->withdrawal_address = $request->withdrawal_address;
         }
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'uploads'); // uses /public/uploads/avatars
+            $uploadsPath = public_path('uploads/avatars');
+
+            // Create the folder if it doesn't exist
+            if (!File::exists($uploadsPath)) {
+                File::makeDirectory($uploadsPath, 0755, true); // recursive = true
+            }
+
+            // Store the file
+            $path = $request->file('avatar')->store('avatars', 'uploads');
             $user->avatar = $path;
         }
         if ($request->has('country')) {
