@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use App\Models\Announcement;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use Illuminate\Support\Facades\File;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
 {
@@ -141,18 +141,27 @@ class UserController extends Controller
 
         $user = $request->user();
 
-        // Delete old avatar if it's a stored file (not default)
-        if ($user->avatar && str_starts_with($user->avatar, '/storage/avatars/')) {
-            $oldPath = str_replace('/storage/', '', $user->avatar); // Convert to relative storage path
-            Storage::disk('public')->delete($oldPath);
+        // Delete old avatar if it's a stored file
+        if ($user->avatar && str_starts_with($user->avatar, 'avatars/')) {
+            Storage::disk('uploads')->delete($user->avatar);
         }
 
-        // Store new avatar
-        $path = $request->file('avatar')->store('avatars', 'public');
+        // Ensure folder exists
+        $uploadsPath = public_path('uploads/avatars');
+        if (!File::exists($uploadsPath)) {
+            File::makeDirectory($uploadsPath, 0755, true);
+        }
+        // Store new avatar in public/uploads/avatars
+        $path = $request->file('avatar')->store('avatars', 'uploads');
+
+        // Save avatar path (e.g., avatars/xyz.jpg)
         $user->avatar = $path;
         $user->save();
 
-        return success(['avatar' => $user->avatar]);
+        // Return full public URL
+        return response()->json([
+            'avatar' => asset('uploads/' . $user->avatar)
+        ]);
     }
 
     public function announcement()
