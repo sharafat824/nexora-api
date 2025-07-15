@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens ;
+    use HasFactory, Notifiable, HasApiTokens;
 
 
     protected $fillable = [
@@ -26,7 +26,9 @@ class User extends Authenticatable
         'avatar',
         'is_active',
         'is_commission_distributed',
-        'withdrawal_address'
+        'withdrawal_address',
+        "country",
+        "country_code"
     ];
 
     protected $hidden = [
@@ -124,76 +126,107 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-public function referralTeamWithLevels(int $maxLevel = 5)
-{
-    $team = [];
-    $currentLevelUsers = [$this->id];
+    public function referralTeamWithLevels(int $maxLevel = 5)
+    {
+        $team = [];
+        $currentLevelUsers = [$this->id];
 
-    for ($level = 1; $level <= $maxLevel; $level++) {
-        $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)->get();
+        for ($level = 1; $level <= $maxLevel; $level++) {
+            $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)->get();
 
-        if ($nextLevelUsers->isEmpty()) break;
+            if ($nextLevelUsers->isEmpty())
+                break;
 
-        foreach ($nextLevelUsers as $user) {
-            $team[] = [
-                'user' => $user,
-                'level' => $level
-            ];
+            foreach ($nextLevelUsers as $user) {
+                $team[] = [
+                    'user' => $user,
+                    'level' => $level
+                ];
+            }
+
+            $currentLevelUsers = $nextLevelUsers->pluck('id')->toArray();
         }
 
-        $currentLevelUsers = $nextLevelUsers->pluck('id')->toArray();
+        return $team;
     }
 
-    return $team;
-}
+    public function referralTeamWithCommission(int $maxLevel = 5)
+    {
+        $team = [];
+        $currentLevelUsers = [$this->id];
 
-public function referralTeamWithCommission(int $maxLevel = 5)
-{
-    $team = [];
-    $currentLevelUsers = [$this->id];
+        // Define how much % commission per level
+        $levelCommissions = [
+            1 => 0.10, // 10%
+            2 => 0.05, // 5%
+            3 => 0.03, // 3%
+            4 => 0.02, // 2%
+            5 => 0.01  // 1%
+        ];
 
-    // Define how much % commission per level
-    $levelCommissions = [
-        1 => 0.10, // 10%
-        2 => 0.05, // 5%
-        3 => 0.03, // 3%
-        4 => 0.02, // 2%
-        5 => 0.01  // 1%
-    ];
+        for ($level = 1; $level <= $maxLevel; $level++) {
+            $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)->get();
 
-    for ($level = 1; $level <= $maxLevel; $level++) {
-        $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)->get();
+            if ($nextLevelUsers->isEmpty())
+                break;
 
-        if ($nextLevelUsers->isEmpty()) break;
+            foreach ($nextLevelUsers as $user) {
+                // Get sum of deposits from this user
+                $baseAmount = $user->deposits()->sum('amount'); // Or use earnings
+                $commission = $baseAmount * ($levelCommissions[$level] ?? 0);
 
-        foreach ($nextLevelUsers as $user) {
-            // Get sum of deposits from this user
-            $baseAmount = $user->deposits()->sum('amount'); // Or use earnings
-            $commission = $baseAmount * ($levelCommissions[$level] ?? 0);
+                $team[] = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'level' => $level,
+                    'commission' => $commission,
+                    'joined_at' => $user->created_at->format('Y-m-d H:i:s'),
+                ];
+            }
 
-            $team[] = [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'level' => $level,
-                'commission' => $commission,
-                'joined_at' => $user->created_at->format('Y-m-d H:i:s'),
-            ];
+            $currentLevelUsers = $nextLevelUsers->pluck('id')->toArray();
         }
 
-        $currentLevelUsers = $nextLevelUsers->pluck('id')->toArray();
+        return $team;
     }
 
-    return $team;
-}
+    public function getTeamWithCommissionAttribute()
+    {
+        return $this->referralTeamWithCommission();
+    }
 
-public function getTeamWithCommissionAttribute()
-{
-    return $this->referralTeamWithCommission();
-}
+    public function getTeamAttribute()
+    {
+        return $this->referralTeamWithLevels();
+    }
 
-public function getTeamAttribute()
-{
-    return $this->referralTeamWithLevels();
-}
+    public function referralCommissionByLevel()
+    {
+        return $this->referralEarnings()
+            ->whereNotNull('level')
+            ->selectRaw('level, SUM(amount) as total_earned')
+            ->groupBy('level')
+            ->pluck('total_earned', 'level')
+            ->toArray();
+    }
+
+    public function dailyEarnings($fromDate = null, $toDate = null)
+    {
+        $query = $this->transactions()
+            ->where('type', 'daily_income')
+            ->where('status', 'completed');
+
+        if ($fromDate) {
+            $query->whereDate('created_at', '>=', $fromDate);
+        }
+
+        if ($toDate) {
+            $query->whereDate('created_at', '<=', $toDate);
+        }
+
+        return $query->orderByDesc('created_at')
+            ->get(['amount', 'created_at']);
+    }
+
 }

@@ -75,7 +75,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('earnings/daily', [TransactionController::class, 'dailyEarnings']);
     Route::post('/user/profile/avatar', [UserController::class, 'uploadAvatar']);
    Route::get('/announcement', [UserController::class, 'announcement']);
-
+   Route::get('/countries', function () {
+    return response()->json(config("countries"));
+});
 });
 
 require __DIR__ . '/admin.php';

@@ -27,7 +27,9 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'wallet' => WalletResource::make($this->whenLoaded('wallet')),
             'withdrawal_password' => '*****************', // Masked for security,
-            'referer' => $this->whenLoaded("referrer")
+            'referer' => $this->whenLoaded("referrer"),
+            'country_code' => $this->country_code,
+            'country' => $this->country
         ];
     }
 }

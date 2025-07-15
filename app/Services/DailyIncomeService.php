@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\PlatformSetting;
@@ -22,7 +23,19 @@ class DailyIncomeService
                 return $user->wallet->balance >= $minDeposit;
             });
 
+        $today = Carbon::today();
+
         foreach ($users as $user) {
+
+            // Skip if already has a daily_income record for today
+            $alreadyGiven = $user->transactions()
+                ->where('type', 'daily_income')
+                ->whereDate('created_at', $today)
+                ->exists();
+
+            if ($alreadyGiven) {
+                continue;
+            }
             $income = $user->wallet->active_balance * ($commissionPercent / 100);
 
             // Add earnings to wallet

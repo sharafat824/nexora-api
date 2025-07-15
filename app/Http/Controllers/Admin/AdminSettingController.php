@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Adimn;
+namespace App\Http\Controllers\Admin;
 
 use App\Models\Announcement;
 use Illuminate\Http\Request;
