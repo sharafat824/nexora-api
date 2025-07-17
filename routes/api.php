@@ -11,6 +11,8 @@ use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\WithdrawalController;
 use App\Http\Controllers\TransactionController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -28,6 +30,12 @@ Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleC
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/verify/send-otp', [AuthController::class, 'sendOtp']);
+    Route::post('/verify/otp', [AuthController::class, 'verifyOtp']);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [UserController::class, 'index']);
@@ -65,19 +73,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat', [ChatController::class, 'store']);
     Route::post('/chat/mark-read', [ChatController::class, 'markAsRead']);
     Route::get('/chat/unread-count', function (Request $request) {
-    $count = \App\Models\ChatMessage::where('user_id', $request->user()->id)
-        ->where('direction', 'in') // admin → user
-        ->where('read', false)
-        ->count();
+        $count = \App\Models\ChatMessage::where('user_id', $request->user()->id)
+            ->where('direction', 'in') // admin → user
+            ->where('read', false)
+            ->count();
 
-    return response()->json(['count' => $count]);
-});
+        return response()->json(['count' => $count]);
+    });
     Route::get('earnings/daily', [TransactionController::class, 'dailyEarnings']);
     Route::post('/user/profile/avatar', [UserController::class, 'uploadAvatar']);
-   Route::get('/announcement', [UserController::class, 'announcement']);
-   Route::get('/countries', function () {
-    return response()->json(config("countries"));
-});
+    Route::get('/announcement', [UserController::class, 'announcement']);
+    Route::get('/countries', function () {
+        return response()->json(config("countries"));
+    });
 });
 
 require __DIR__ . '/admin.php';

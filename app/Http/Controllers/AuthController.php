@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Mail\OtpVerificationMail;
+use App\Models\EmailVerification;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
@@ -26,18 +31,88 @@ class AuthController extends Controller
         if ($request->referral_code) {
             $referrer = User::where('referral_code', $request->referral_code)->first();
         }
+        $fullName = $request->first_name . ' ' . $request->last_name;
+
+        // ✅ Generate base username from name
+        $baseUsername = Str::slug($request->first_name . $request->last_name, '_');
+
+        // ✅ Ensure it's unique
+        $username = $baseUsername;
+        $i = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername . $i;
+            $i++;
+        }
 
         $user = User::create([
-            'name' => $request->name,
+            'name' => $fullName,
             'email' => $request->email,
-            'username' => strtolower(str_replace(' ', '_', $request->name)),
+            'username' => $username,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'referred_by' => $referrer ? $referrer->id : null
         ]);
 
+        // Create OTP record
+        $otp = rand(100000, 999999);
+        EmailVerification::updateOrCreate(
+            ['user_id' => $user->id],
+            ['otp' => $otp, 'expires_at' => Carbon::now()->addMinutes(10)]
+        );
+
+        // Send OTP via email
+        Mail::to($user->email)->send(new OtpVerificationMail($otp));
+
+        // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
-        return success(['access_token' => $token, 'user' => $user], 'Registration successful', 201);
+
+        return success([
+            'access_token' => $token,
+            'user' => $user
+        ], 'Registered successfully. OTP has been sent to your email.', 201);
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->email_verified_at) {
+            return error('Email already verified.', 400);
+        }
+
+        $otp = rand(100000, 999999);
+        EmailVerification::updateOrCreate(
+            ['user_id' => $user->id],
+            ['otp' => $otp, 'expires_at' => Carbon::now()->addMinutes(10)]
+        );
+
+        // Send OTP via email
+        Mail::to($user->email)->send(new \App\Mail\OtpVerificationMail($otp));
+
+        return success([], 'OTP sent to your email.');
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'otp' => 'required|numeric'
+        ]);
+
+        $user = $request->user();
+
+        $record = EmailVerification::where('user_id', $user->id)
+            ->where('otp', $request->otp)
+            ->first();
+
+        if (!$record || Carbon::now()->gt($record->expires_at)) {
+            return error('Invalid or expired OTP.', 422);
+        }
+
+        $user->email_verified_at = now();
+        $user->save();
+        $record->delete();
+
+        return success(['user' => $user], 'Email verified successfully.');
     }
 
     public function login(Request $request)
@@ -63,6 +138,6 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-      return success([],'Logout successfully');
+        return success([], 'Logout successfully');
     }
 }
