@@ -35,6 +35,7 @@ class SocialAuthController extends Controller
             'name' => $googleUser->getName(),
             'username' => $username,
             'password' => bcrypt(Str::random(16)),
+            'email_verified_at' => now()
         ]
     );
 
