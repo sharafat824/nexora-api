@@ -16,7 +16,7 @@ class AdminUserController extends Controller
         $search = $request->input('search');
         if ($search) {
             $query->where('name', 'like', "%$search%")
-            ->orWhere('email', 'like', "%$search%");
+                ->orWhere('email', 'like', "%$search%");
 
         }
         $users = $query->latest()->paginate(10);
@@ -73,7 +73,11 @@ class AdminUserController extends Controller
     public function destroy(User $user)
     {
         try {
+            // Remove referral links
+            User::where('referred_by', $user->id)->update(['referred_by' => null]);
+
             $user->delete();
+
             return success([], 'User deleted successfully');
         } catch (\Exception $e) {
             return error('Failed to delete user', 500, ['exception' => $e->getMessage()]);
