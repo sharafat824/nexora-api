@@ -18,7 +18,7 @@ class Wallet extends Model
     public function deposit($amount)
     {
         $this->balance += $amount;
-        $this->active_balance += $amount;
+    //    $this->active_balance += $amount;
         $this->save();
     }
 

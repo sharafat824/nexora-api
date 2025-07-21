@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\LoginLog;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\OtpVerificationMail;
@@ -129,7 +130,17 @@ class AuthController extends Controller
             return error('Invalid credentials', 401);
         }
 
+        if ($user->is_blocked) {
+            return error('Your account has been blocked. Please contact support.', 403);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        LoginLog::create([
+            'user_id' => $user->id,
+            'ip' => request()->ip(),
+            'logged_in_at' => now(),
+        ]);
 
         return success(['access_token' => $token, 'user' => $user]);
     }

@@ -36,7 +36,7 @@ class DailyIncomeService
             if ($alreadyGiven) {
                 continue;
             }
-            $income = $user->wallet->active_balance * ($commissionPercent / 100);
+            $income = $user->wallet->balance * ($commissionPercent / 100);
 
             // Add earnings to wallet
             $user->wallet->addEarnings($income);

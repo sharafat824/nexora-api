@@ -42,10 +42,36 @@ class AdminUserController extends Controller
         }
     }
 
-    public function show(User $user)
+    public function show($id)
     {
+        $user = User::with([
+            'wallet:id,user_id,balance,total_earnings,total_withdrawals',
+            'referrer:id,name,email',
+            'loginLogs:id,user_id,ip,logged_in_at'
+        ])
+            ->select([
+                'id',
+                'name',
+                'email',
+                'username',
+                'phone',
+                'country',
+                'country_code',
+                'referral_code',
+                'referred_by',
+                'is_admin',
+                'is_blocked',
+                'kyc_status',
+                'created_at'
+            ])
+            ->findOrFail($id);
+
+        // Add commission by level manually
+        $user->commission_by_level = $user->referralCommissionByLevel();
+
         return success($user, 'User fetched successfully');
     }
+
 
     public function update(Request $request, User $user)
     {
@@ -93,4 +119,48 @@ class AdminUserController extends Controller
             'token' => $token,
         ]);
     }
+
+    public function adjustWallet(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'amount' => 'required|numeric|not_in:0',
+        ]);
+
+        $amount = $data['amount'];
+        $wallet = $user->wallet;
+
+        try {
+            if ($amount > 0) {
+                $wallet->deposit($amount);
+            } else {
+                $wallet->withdraw(abs($amount));
+            }
+
+            $user->transactions()->create([
+                'amount' => $amount,
+                'type' => 'manual_adjustment',
+                'status' => 'completed',
+                'description' => 'Manual wallet adjustment by admin',
+            ]);
+
+            return success(
+                $wallet->only(['balance', 'total_earnings', 'total_withdrawals']),
+                'Wallet adjusted successfully.'
+            );
+        } catch (\Exception $e) {
+            return error($e->getMessage(), 422);
+        }
+    }
+
+    public function toggleBlock(User $user)
+    {
+        $user->is_blocked = !$user->is_blocked;
+        $user->save();
+
+        return success(
+            [],
+            $user->is_blocked ? 'User blocked' : 'User unblocked',
+        );
+    }
+
 }

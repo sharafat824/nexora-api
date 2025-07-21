@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'username' => $this->username,
             'is_admin' => $this->is_admin,
+            'is_blocked' => $this->is_blocked,
             'phone' => $this->phone,
             'withdrawal_address'=>$this->withdrawal_address,
             'avatar' =>$this->avatar

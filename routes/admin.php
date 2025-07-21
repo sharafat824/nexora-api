@@ -46,5 +46,7 @@ Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(func
 
     Route::get('/announcement', [AdminSettingController::class, 'getAnnouncement']);
     Route::post('/announcement', [AdminSettingController::class, 'saveAnnouncement']);
+    Route::post('/users/{user}/wallet-adjust', [AdminUserController::class, 'adjustWallet']);
+    Route::post('users/{user}/toggle-block', [AdminUserController::class, 'toggleBlock']);
     // More admin routes...
 });

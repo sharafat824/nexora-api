@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens ;
+    use HasFactory, Notifiable, HasApiTokens;
 
 
     protected $fillable = [
@@ -29,7 +29,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_commission_distributed',
         'withdrawal_address',
         "country",
-        "country_code"
+        "country_code",
+        'is_blocked',
+        'kyc_status',
+        'kyc_verified_at'
     ];
 
     protected $hidden = [
@@ -41,6 +44,16 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'is_active' => 'boolean'
     ];
+
+    public function loginLogs()
+    {
+        return $this->hasMany(LoginLog::class);
+    }
+    public function recentLoginLogs()
+    {
+        return $this->hasMany(LoginLog::class)->latest('logged_in_at')->limit(5);
+    }
+
 
     public function referrer()
     {
