@@ -26,7 +26,10 @@ Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(func
 
     // // Deposits
     Route::get('/deposits', [AdminDepositController::class, 'index']);
-    Route::put('/deposits/{deposit}/status', [AdminDepositController::class, 'approveDeposit']);
+    Route::put('/deposits/{deposit}/status', [AdminDepositController::class, 'updateDepositStatus']);
+    Route::get('/deposits/export', [AdminDepositController::class, 'export']);
+    Route::post('/deposits', [AdminDepositController::class, 'store']);
+
     Route::get('/withdrawals', [AdminWithdrawalController::class, 'index']);
     Route::put('/withdrawals/{withdrawal}/status', [AdminWithdrawalController::class, 'approveWithdraw']);
 
