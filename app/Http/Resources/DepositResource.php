@@ -19,7 +19,7 @@ class DepositResource extends JsonResource
             'amount' => $this->amount,
             'payment_method' => $this->payment_method,
             'status' => $this->status,
-            'proof' => $this->proof ? asset('storage/' . $this->proof) : null,
+            'proof' => $this->proof ? asset('storage/app/public/' . $this->proof) : null,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'formatted_amount' => number_format($this->amount, 2),
              'user' => [
