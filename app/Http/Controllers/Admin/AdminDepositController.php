@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DepositResource;
 use App\Notifications\DepositStatusUpdated;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-
 class AdminDepositController extends Controller
 {
     protected $referralService;
@@ -158,35 +157,36 @@ class AdminDepositController extends Controller
         return success(new DepositResource($deposit), 'Manual deposit added');
     }
 
-    public function export(Request $request): StreamedResponse
-    {
-        $deposits = Deposit::with('user')->latest()->get();
+public function export(Request $request): StreamedResponse
+{
+    $deposits = Deposit::with('user')->latest()->get();
 
-        $headers = [
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=deposits.csv",
-        ];
+    $headers = [
+        "Content-type" => "text/csv",
+        "Content-Disposition" => "attachment; filename=deposits.csv",
+    ];
 
-        $callback = function () use ($deposits) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'User', 'Email', 'Amount', 'Status', 'Date']);
+    $callback = function () use ($deposits) {
+        $file = fopen('php://output', 'w');
+        fputcsv($file, ['ID', 'User', 'Email', 'Amount', 'Status', 'Date']);
 
-            foreach ($deposits as $deposit) {
-                fputcsv($file, [
-                    $deposit->id,
-                    $deposit->user?->name,
-                    $deposit->user?->email,
-                    $deposit->amount,
-                    $deposit->status,
-                    $deposit->created_at,
-                ]);
-            }
+        foreach ($deposits as $deposit) {
+            fputcsv($file, [
+                $deposit->id,
+                $deposit->user?->name,
+                $deposit->user?->email,
+                $deposit->amount,
+                $deposit->status,
+                $deposit->created_at,
+            ]);
+        }
 
-            fclose($file);
-        };
+        fclose($file);
+    };
 
-        return response()->stream($callback, 200, $headers);
-    }
+    return response()->stream($callback, 200, $headers);
+}
+
 
 
 }
