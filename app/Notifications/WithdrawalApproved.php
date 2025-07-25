@@ -2,42 +2,53 @@
 
 namespace App\Notifications;
 
+use App\Models\Withdrawal;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
-use App\Models\Withdrawal;
 
-class WithdrawalApproved extends Notification
+class WithdrawalApproved extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $withdrawal;
+    protected Withdrawal $withdrawal;
 
     public function __construct(Withdrawal $withdrawal)
     {
         $this->withdrawal = $withdrawal;
     }
 
-    public function via($notifiable)
+    public function via($notifiable): array
     {
-        return ['mail', 'database']; // or just ['mail'] if you don’t use in-app notifications
+        return ['mail', 'database'];
     }
 
-    public function toMail($notifiable)
+    public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject('Withdrawal Approved')
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('Your withdrawal request of ' . number_format($this->withdrawal->amount, 2) . ' has been approved.')
-        //    ->line('Transaction ID: ' . $this->withdrawal->transaction_id)
-            ->line('Thank you for using our platform.');
+        $amount = number_format($this->withdrawal->amount, 2);
+        $date = $this->withdrawal->created_at->format('F j, Y h:i A');
+
+        $mail = (new MailMessage)
+            ->subject("Withdrawal Approved - \${$amount}")
+            ->greeting("Hello {$notifiable->name},")
+            ->line("Your withdrawal request of **\${$amount}** made on **{$date}** has been approved.")
+            ->line("The funds will be processed shortly via your selected withdrawal method.");
+
+        return $mail;
     }
 
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
-            'message' => 'Your withdrawal of ' . number_format($this->withdrawal->amount, 2) . ' has been approved.',
-           // 'withdrawal_id' => $this->withdrawal->id,
+            'title' => 'Withdrawal Approved',
+            'message' => "Your withdrawal of \${$this->withdrawal->amount} has been approved.",
+            'amount' => $this->withdrawal->amount,
+            'withdrawal_id' => $this->withdrawal->id,
+            'transaction_id' => $this->withdrawal->transaction_id ?? null,
+            'status' => 'approved',
+            'type' => 'withdrawal',
+            'date' => $this->withdrawal->created_at->toDateTimeString(),
         ];
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
 Schedule::macro('scheduleDailyTasks', function () {
-    $this->command('app:calculate-daily-income')->dailyAt('00:30'); // or ->daily()
+    $this->command('app:calculate-daily-income')->dailyAt('00:30');
 });

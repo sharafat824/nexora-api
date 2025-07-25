@@ -2,63 +2,56 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-//use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use App\Models\Deposit;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
 
-class DepositStatusUpdated extends Notification
+class DepositStatusUpdated extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $deposit;
+    protected Deposit $deposit;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct(Deposit $deposit)
     {
         $this->deposit = $deposit;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
-        $status = $this->deposit->status;
-        $amount = $this->deposit->formatted_amount;
+        $status = ucfirst($this->deposit->status); // Capitalize
+        $amount = number_format($this->deposit->amount, 2);
+        $date = $this->deposit->created_at->format('F j, Y h:i A');
 
-        $mailMessage = (new MailMessage)
-            ->subject("Deposit {$status} - {$amount}")
+        $mail = (new MailMessage)
+            ->subject("Deposit {$status} - \${$amount}")
             ->greeting("Hello {$notifiable->name},")
-            ->line("Your deposit of {$amount} has been {$status}.");
+            ->line("Your deposit of **\${$amount}** made on **{$date}** has been **{$status}**.");
 
-        if ($status === 'rejected' && $this->deposit->rejection_reason) {
-            $mailMessage->line("Reason: {$this->deposit->rejection_reason}");
+        if ($this->deposit->status === 'rejected') {
+            if ($this->deposit->rejection_reason) {
+                $mail->line("**Reason:** {$this->deposit->rejection_reason}");
+            }
         }
 
-        $mailMessage->line('Thank you for using our service!');
+        if ($this->deposit->status === 'completed') {
+            $mail->line("The funds have been successfully added to your wallet.");
+        }
 
-        return $mailMessage;
+        if ($this->deposit->admin_notes) {
+            $mail->line("**Admin Notes:** {$this->deposit->admin_notes}");
+        }
+
+        return $mail;
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(object $notifiable): array
     {
         return [
@@ -67,17 +60,18 @@ class DepositStatusUpdated extends Notification
             'amount' => $this->deposit->amount,
             'status' => $this->deposit->status,
             'deposit_id' => $this->deposit->id,
-            'date' => now()->toDateTimeString(),
+            'date' => $this->deposit->created_at->toDateTimeString(),
             'type' => 'deposit_status_update',
         ];
     }
 
     protected function getNotificationMessage(): string
     {
-        $message = "Your deposit of {$this->deposit->formatted_amount} has been {$this->deposit->status}";
+        $amount = number_format($this->deposit->amount, 2);
+        $message = "Your deposit of \${$amount} has been {$this->deposit->status}.";
 
         if ($this->deposit->status === 'rejected' && $this->deposit->rejection_reason) {
-            $message .= ". Reason: {$this->deposit->rejection_reason}";
+            $message .= " Reason: {$this->deposit->rejection_reason}.";
         }
 
         return $message;
