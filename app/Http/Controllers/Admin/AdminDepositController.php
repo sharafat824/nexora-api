@@ -156,36 +156,39 @@ class AdminDepositController extends Controller
 
         return success(new DepositResource($deposit), 'Manual deposit added');
     }
+    public function export(Request $request): StreamedResponse
+    {
+        $deposits = Deposit::with('user')->latest()->get();
 
-public function export(Request $request): StreamedResponse
-{
-    $deposits = Deposit::with('user')->latest()->get();
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=deposits.csv",
+        ];
 
-    $headers = [
-        "Content-type" => "text/csv",
-        "Content-Disposition" => "attachment; filename=deposits.csv",
-    ];
+        $callback = function () use ($deposits) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'User', 'Email', 'Amount', 'Status', 'Date']);
 
-    $callback = function () use ($deposits) {
-        $file = fopen('php://output', 'w');
-        fputcsv($file, ['ID', 'User', 'Email', 'Amount', 'Status', 'Date']);
+            if ($deposits->isEmpty()) {
+                fputcsv($file, ['No deposits found.']);
+            }
 
-        foreach ($deposits as $deposit) {
-            fputcsv($file, [
-                $deposit->id,
-                $deposit->user?->name,
-                $deposit->user?->email,
-                $deposit->amount,
-                $deposit->status,
-                $deposit->created_at,
-            ]);
-        }
+            foreach ($deposits as $deposit) {
+                fputcsv($file, [
+                    $deposit->id,
+                    $deposit->user->name ?? 'N/A',
+                    $deposit->user->email ?? 'N/A',
+                    $deposit->amount,
+                    $deposit->status,
+                    $deposit->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
 
-        fclose($file);
-    };
+            fclose($file);
+        };
 
-    return response()->stream($callback, 200, $headers);
-}
+        return response()->stream($callback, 200, $headers);
+    }
 
 
 
