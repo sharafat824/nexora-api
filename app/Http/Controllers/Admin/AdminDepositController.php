@@ -8,6 +8,7 @@ use App\Services\ReferralService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DepositResource;
 use App\Notifications\DepositStatusUpdated;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminDepositController extends Controller
 {
