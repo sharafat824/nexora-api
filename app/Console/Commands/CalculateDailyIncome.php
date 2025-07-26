@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use App\Services\DailyIncomeService;
 
 class CalculateDailyIncome extends Command
@@ -26,7 +27,12 @@ class CalculateDailyIncome extends Command
      */
     public function handle(DailyIncomeService $service)
     {
+        Log::info('🎯 app:calculate-daily-income started');
+
         $count = $service->calculateDailyIncome();
+
+        Log::info("✅ Daily income calculated for {$count} users");
+
         $this->info("Daily income calculated for {$count} users");
     }
 }

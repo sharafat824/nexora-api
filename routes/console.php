@@ -9,5 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::macro('scheduleDailyTasks', function () {
-    $this->command('app:calculate-daily-income')->dailyAt('00:30');
+    $this->command('app:calculate-daily-income')->dailyAt('00:00');
 });
