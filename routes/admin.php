@@ -31,7 +31,7 @@ Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(func
     Route::post('/deposits', [AdminDepositController::class, 'store']);
 
     Route::get('/withdrawals', [AdminWithdrawalController::class, 'index']);
-    Route::put('/withdrawals/{withdrawal}/status', [AdminWithdrawalController::class, 'approveWithdraw']);
+    Route::put('/withdrawals/{withdrawal}/status', [AdminWithdrawalController::class, 'updateStatus']);
 
     Route::post('/users/{user}/impersonate', [AdminUserController::class, 'impersonate']);
 

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Withdrawal extends Model
 {
     protected $fillable = [
-        'user_id', 'amount', 'fee', 'wallet_address', 'method', 'status', 'admin_note'
+        'user_id', 'amount', 'fee', 'wallet_address', 'method', 'status', 'admin_note','rejection_reason'
     ];
 
     protected $casts = [

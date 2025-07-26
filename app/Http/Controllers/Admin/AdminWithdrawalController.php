@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Withdrawal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Notifications\WithdrawalApproved;
+use App\Notifications\WithdrawalRejected;
 use App\Http\Resources\WithdrawalResource;
 
 class AdminWithdrawalController extends Controller
@@ -58,22 +60,55 @@ class AdminWithdrawalController extends Controller
         ]);
     }
 
-
-    public function approveWithdraw(Withdrawal $withdrawal)
+    public function updateStatus(Request $request, Withdrawal $withdrawal)
     {
         if ($withdrawal->status !== 'processing') {
-            return error('Only pending withdrawals can be approved', 400);
+            return error('Only processing withdrawals can be updated', 400);
         }
 
-        $withdrawal->status = 'completed';
-        $withdrawal->save();
+        $validated = $request->validate([
+            'status' => 'required|in:completed,rejected',
+            'rejection_reason' => 'nullable|string|max:255',
+            'admin_notes' => 'nullable|string|max:255',
+        ]);
 
+        DB::beginTransaction();
 
-        $withdrawal->transaction()->update(['status' => 'completed']);
+        try {
+            $status = $validated['status'];
 
-        // ✅ Notify the user
-        $withdrawal->user->notify(new WithdrawalApproved($withdrawal));
+            $withdrawal->status = $status;
+            $withdrawal->admin_notes = $validated['admin_notes'] ?? null;
 
-        return success([], 'Withdrawal marked as completed and user notified');
+            if ($status === 'rejected') {
+                $withdrawal->rejection_reason = $validated['rejection_reason'] ?? 'Rejected by admin';
+
+                // Refund the user (amount + fee)
+                $wallet = $withdrawal->user->wallet;
+                $refundAmount = $withdrawal->amount + $withdrawal->fee;
+                $wallet->deposit($refundAmount, 'Refund for rejected withdrawal #' . $withdrawal->id);
+            }
+
+            $withdrawal->save();
+
+            // Update linked transaction
+            $withdrawal->transaction()->update(['status' => $status]);
+
+            // Notify the user
+            if ($status === 'completed') {
+                $withdrawal->user->notify(new WithdrawalApproved($withdrawal));
+            } else {
+                $withdrawal->user->notify(new WithdrawalRejected($withdrawal));
+            }
+
+            DB::commit();
+
+            return success([], "Withdrawal has been {$status}");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return error('Failed to update withdrawal: ' . $e->getMessage(), 500);
+        }
     }
+
+
 }

@@ -6,8 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Wallet extends Model
 {
-     protected $fillable = [
-        'user_id', 'balance', 'active_balance', 'total_earnings', 'total_withdrawals'
+    protected $fillable = [
+        'user_id',
+        'balance',
+        'active_balance',
+        'total_earnings',
+        'total_withdrawals'
     ];
 
     public function user()
@@ -15,11 +19,20 @@ class Wallet extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function deposit($amount)
+    public function deposit($amount, $reason = null)
     {
         $this->balance += $amount;
-    //    $this->active_balance += $amount;
         $this->save();
+
+        // Automatically log a transaction if reason is provided
+        if ($reason) {
+            $this->user->transactions()->create([
+                'amount' => $amount,
+                'type' => 'refund',
+                'status' => 'completed',
+                'description' => $reason,
+            ]);
+        }
     }
 
     public function withdraw($amount)
