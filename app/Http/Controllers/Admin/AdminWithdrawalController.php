@@ -69,7 +69,7 @@ class AdminWithdrawalController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:completed,rejected',
             'rejection_reason' => 'nullable|string|max:255',
-            'admin_notes' => 'nullable|string|max:255',
+            // 'admin_notes' => 'nullable|string|max:255',
         ]);
 
         DB::beginTransaction();
@@ -78,7 +78,7 @@ class AdminWithdrawalController extends Controller
             $status = $validated['status'];
 
             $withdrawal->status = $status;
-            $withdrawal->admin_notes = $validated['admin_notes'] ?? null;
+       //     $withdrawal->admin_notes = $validated['admin_notes'] ?? null;
 
             if ($status === 'rejected') {
                 $withdrawal->rejection_reason = $validated['rejection_reason'] ?? 'Rejected by admin';

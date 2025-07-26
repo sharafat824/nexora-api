@@ -42,7 +42,7 @@ class AdminDashboardController extends Controller
             'total_deposits' => Deposit::where('status', 'completed')->sum('amount'),
             'pending_deposits' => Deposit::where('status', 'pending')->count(),
             'total_withdrawals' => Withdrawal::where('status', 'completed')->sum('amount'),
-            'pending_withdrawals' => Withdrawal::where('status', 'pending')->count(),
+            'pending_withdrawals' => Withdrawal::where('status', 'processing')->count(),
 
             'today_profit' => $todayProfit,
             //    'active_investments' => $activeInvestments,
