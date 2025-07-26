@@ -10,20 +10,42 @@ use App\Http\Resources\WithdrawalResource;
 
 class AdminWithdrawalController extends Controller
 {
-      public function index(Request $request)
+    public function index(Request $request)
     {
-         $query = Withdrawal::with('user')->latest();
+        $query = Withdrawal::with('user')->latest();
 
-        if ($request->has('status') && !empty($request->status)) {
+        // Status filter
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        if ($request->has('search') && $request->search !== '') {
+
+        // Search filter (by user name or email)
+        if ($request->filled('search')) {
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
             });
         }
 
+        // Date range filter
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        // Amount range filter
+        if ($request->filled('amount_min')) {
+            $query->where('amount', '>=', $request->amount_min);
+        }
+
+        if ($request->filled('amount_max')) {
+            $query->where('amount', '<=', $request->amount_max);
+        }
+
+        // Pagination
         $withdrawals = $query->paginate($request->get('page_size', 10));
 
         return success([
@@ -36,6 +58,7 @@ class AdminWithdrawalController extends Controller
         ]);
     }
 
+
     public function approveWithdraw(Withdrawal $withdrawal)
     {
         if ($withdrawal->status !== 'processing') {
@@ -46,11 +69,11 @@ class AdminWithdrawalController extends Controller
         $withdrawal->save();
 
 
-    $withdrawal->transaction()->update(['status' => 'completed']);
+        $withdrawal->transaction()->update(['status' => 'completed']);
 
-    // ✅ Notify the user
-    $withdrawal->user->notify(new WithdrawalApproved($withdrawal));
+        // ✅ Notify the user
+        $withdrawal->user->notify(new WithdrawalApproved($withdrawal));
 
-    return success([], 'Withdrawal marked as completed and user notified');
+        return success([], 'Withdrawal marked as completed and user notified');
     }
 }
