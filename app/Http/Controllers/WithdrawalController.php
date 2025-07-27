@@ -67,6 +67,35 @@ class WithdrawalController extends Controller
             ], 400);
         }
 
+        // === NEW: Check daily and monthly withdrawal limits ===
+        $dailyLimit = (float) PlatformSetting::getValue('withdrawal_limit_daily', 0);
+        $monthlyLimit = (float) PlatformSetting::getValue('withdrawal_limit_monthly', 0);
+
+        if ($dailyLimit > 0) {
+            $withdrawnToday = $user->withdrawals()
+                ->whereDate('created_at', now()->toDateString())
+                ->sum('amount');
+
+            if ($withdrawnToday + $request->amount > $dailyLimit) {
+                return response()->json([
+                    'message' => "Daily withdrawal limit of {$dailyLimit}USDT has been reached."
+                ], 422);
+            }
+        }
+
+        if ($monthlyLimit > 0) {
+            $withdrawnThisMonth = $user->withdrawals()
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->sum('amount');
+
+            if ($withdrawnThisMonth + $request->amount > $monthlyLimit) {
+                return response()->json([
+                    'message' => "Monthly withdrawal limit of {$monthlyLimit}USDT has been reached."
+                ], 422);
+            }
+        }
+        // === END OF LIMIT CHECKS ===
         try {
             DB::beginTransaction();
 

@@ -39,7 +39,7 @@ Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(func
         Route::get('/', [SettingController::class, 'index']);
         Route::post('/general', [SettingController::class, 'updateGeneral']);
         Route::post('/commissions', [SettingController::class, 'updateCommissions']);
-
+        Route::post('/upload-logo', [SettingController::class, 'uploadLogo']);
     });
 
     Route::get('/chat/users', [AdminChatController::class, 'getChatUsers']);

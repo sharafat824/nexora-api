@@ -15,7 +15,7 @@ class SettingsAndCommissionsSeeder extends Seeder
             [
                 'key' => 'site_name',
                 'value' => 'Nexora',
-                'display_name' => 'Noxora',
+                'display_name' => 'Nexora',
                 'group' => 'general',
                 'description' => 'The name of the platform displayed throughout the site.',
             ],
@@ -27,6 +27,27 @@ class SettingsAndCommissionsSeeder extends Seeder
                 'description' => 'Support contact email for users.',
             ],
             [
+                'key' => 'site_logo',
+                'value' => '/storage/logos/default-logo.png',
+                'display_name' => 'Site Logo',
+                'group' => 'general',
+                'description' => 'Logo for the platform.',
+            ],
+            [
+                'key' => 'privacy_policy_url',
+                'value' => '/privacy-policy',
+                'display_name' => 'Privacy Policy Link',
+                'group' => 'general',
+                'description' => 'Link to privacy policy page.',
+            ],
+            [
+                'key' => 'terms_policy_url',
+                'value' => '/terms',
+                'display_name' => 'Terms & Conditions Link',
+                'group' => 'general',
+                'description' => 'Link to terms and conditions page.',
+            ],
+            [
                 'key' => 'maintenance_mode',
                 'value' => false,
                 'display_name' => 'Maintenance Mode',
@@ -34,25 +55,32 @@ class SettingsAndCommissionsSeeder extends Seeder
                 'description' => 'Toggle to enable or disable the site.',
             ],
             [
+                'key' => 'enable_daily_earning',
+                'value' => true,
+                'display_name' => 'Enable Daily Earning',
+                'group' => 'general',
+                'description' => 'Enable or disable daily earning feature for users.',
+            ],
+            [
                 'key' => 'daily_commision',
                 'value' => '5',
                 'display_name' => 'Daily Commission (%)',
                 'group' => 'general',
-                'description' => 'Users daily commission.',
+                'description' => 'Users daily commission percentage.',
             ],
             [
                 'key' => 'min_deposit',
                 'value' => 20,
                 'display_name' => "Minimum Deposit",
                 'group' => 'general',
-                'description' => 'Minimus deposit allow'
+                'description' => 'Minimum deposit allowed'
             ],
             [
                 'key' => 'min_withdraw',
                 'value' => 20,
                 'display_name' => "Minimum Withdraw",
                 'group' => 'general',
-                'description' => 'Minimus withdraw allow'
+                'description' => 'Minimum withdrawal allowed'
             ],
             [
                 'key' => 'withdraw_fee',
@@ -61,7 +89,20 @@ class SettingsAndCommissionsSeeder extends Seeder
                 'group' => 'general',
                 'description' => 'Percentage fee charged on each withdrawal.'
             ],
-
+            [
+                'key' => 'withdrawal_limit_daily',
+                'value' => 1000,
+                'display_name' => 'Daily Withdrawal Limit',
+                'group' => 'general',
+                'description' => 'Maximum amount a user can withdraw in a single day.'
+            ],
+            [
+                'key' => 'withdrawal_limit_monthly',
+                'value' => 20000,
+                'display_name' => 'Monthly Withdrawal Limit',
+                'group' => 'general',
+                'description' => 'Maximum amount a user can withdraw in a month.'
+            ]
         ];
 
         foreach ($generalSettings as $setting) {
@@ -73,13 +114,11 @@ class SettingsAndCommissionsSeeder extends Seeder
 
         // Referral Commission Levels
         $commissionLevels = [
-            // // Signup Commissions
             ['level' => 1, 'percentage' => 8.00, 'type' => 'signup'],
             ['level' => 2, 'percentage' => 5.00, 'type' => 'signup'],
             ['level' => 3, 'percentage' => 3.00, 'type' => 'signup'],
             ['level' => 4, 'percentage' => 2.00, 'type' => 'signup'],
             ['level' => 5, 'percentage' => 1.00, 'type' => 'signup'],
-
         ];
 
         foreach ($commissionLevels as $commission) {
