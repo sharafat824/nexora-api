@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\InvestmentPlan;
+use App\Models\PlatformSetting;
 use App\Models\UserInvestment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -28,6 +29,11 @@ class InvestmentController extends Controller
         ]);
 
         $user = $request->user();
+        if ($user->wallet->balance < PlatformSetting::getValue('min_deposit')) {
+            return response()->json([
+                'message' => 'Insufficient balance to activate plan . Minimum Wallet required: ' . PlatformSetting::getValue('min_deposit')
+            ], 422);
+        }
         $plan = InvestmentPlan::findOrFail($request->plan_id);
 
         // If user already has an active plan and it's different from the requested one
