@@ -88,7 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/user/investment-plans', [\App\Http\Controllers\User\InvestmentController::class, 'plans']);
-    Route::post('/user/ investment-plans/activate', [\App\Http\Controllers\User\InvestmentController::class, 'activate']);
+    Route::post('/user/investment-plans/activate', [\App\Http\Controllers\User\InvestmentController::class, 'activate']);
   Route::post('user/collect-daily-income', [\App\Http\Controllers\User\DailyIncomeController::class, 'collect']);
 
 });
