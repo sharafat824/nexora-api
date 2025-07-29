@@ -31,7 +31,7 @@ class InvestmentController extends Controller
         $user = $request->user();
         if ($user->wallet->balance < PlatformSetting::getValue('min_deposit')) {
             return response()->json([
-                'message' => 'Insufficient balance to activate plan . Minimum Wallet required: ' . PlatformSetting::getValue('min_deposit').'USDT'
+                'message' => 'Insufficient balance to activate plan'
             ], 422);
         }
         $plan = InvestmentPlan::findOrFail($request->plan_id);
