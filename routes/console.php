@@ -8,6 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule::macro('scheduleDailyTasks', function () {
-//     $this->command('app:calculate-daily-income')->dailyAt('00:00');
-// });
+Schedule::macro('scheduleDailyTasks', function () {
+    $this->command('app:calculate-daily-income')->dailyAt('00:00');
+});
