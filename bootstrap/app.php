@@ -17,13 +17,13 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->withSchedule(function (Schedule $schedule) {
-        // 👇 Call the macro here
-        $schedule->scheduleDailyTasks();
+    // })->withSchedule(function (Schedule $schedule) {
+    //     // 👇 Call the macro here
+    //     $schedule->scheduleDailyTasks();
 
-        // Optional: test log
-        $schedule->call(function () {
-            info('✅ Schedule is running!');
-        })->daily();
+    //     // Optional: test log
+    //     $schedule->call(function () {
+    //         info('✅ Schedule is running!');
+    //     })->daily();
     })
     ->create();
