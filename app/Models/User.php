@@ -243,4 +243,12 @@ class User extends Authenticatable implements MustVerifyEmail
             ->get(['amount', 'created_at']);
     }
 
+    public function activeInvestment()
+    {
+        return $this->hasOne(UserInvestment::class)
+            ->where('active', true)
+            ->whereDate('end_date', '>=', now());
+    }
+
+
 }

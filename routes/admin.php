@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminDepositController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\InvestmentPlanController;
 use App\Http\Controllers\Admin\AdminWithdrawalController;
 
 Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(function () {
@@ -51,5 +52,9 @@ Route::middleware(['auth:sanctum', IsAdmin::class])->prefix('admin')->group(func
     Route::post('/announcement', [AdminSettingController::class, 'saveAnnouncement']);
     Route::post('/users/{user}/wallet-adjust', [AdminUserController::class, 'adjustWallet']);
     Route::post('users/{user}/toggle-block', [AdminUserController::class, 'toggleBlock']);
+
+    Route::get('investment-plans', [InvestmentPlanController::class, 'index']);
+    Route::post('investment-plans', [InvestmentPlanController::class, 'update']);
+
     // More admin routes...
 });

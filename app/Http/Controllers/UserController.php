@@ -119,15 +119,32 @@ class UserController extends Controller
         $todayTotal = $todayEarnings->sum('amount');
         $weekTotal = $weekEarnings->sum('amount');
 
+
+        // Determine if user has an active investment plan
+        $hasActiveInvestment = $user->activeInvestment()->exists();
+
+        // Determine if the user can collect daily income today
+        $canCollectDailyIncome = false;
+        if ($hasActiveInvestment) {
+            $alreadyCollected = $user->transactions()
+                ->where('type', 'daily_income')
+                ->whereDate('created_at', $today)
+                ->exists();
+
+            $canCollectDailyIncome = !$alreadyCollected;
+        }
+
         return (new UserResource($user))->additional([
             'team_count' => $teamCount,
             'anouncement' => $announcement,
             'referral_earning' => $commissions,
+            'has_active_investment' => $hasActiveInvestment,
+            'can_collect_daily_income' => $canCollectDailyIncome,
             'daily_earnings' => [
                 'total' => $totalEarnings,
                 'today' => $todayTotal,
                 'last_7_days' => $weekTotal,
-                'history' => $allEarnings, // optional: remove if you don’t want full list
+                'history' => $allEarnings,
             ],
         ]);
     }
