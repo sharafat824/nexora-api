@@ -91,6 +91,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/investment-plans/activate', [\App\Http\Controllers\User\InvestmentController::class, 'activate']);
   Route::post('user/collect-daily-income', [\App\Http\Controllers\User\DailyIncomeController::class, 'collect']);
 
+  Route::get('admin/wallet/address', function () {
+        $address = \App\Models\PlatformSetting::where('key', 'admin_wallet_address')->value('value');
+        return response()->json(['address' => $address]);
+    });
 });
 
 require __DIR__ . '/admin.php';

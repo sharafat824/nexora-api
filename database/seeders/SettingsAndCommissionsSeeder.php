@@ -102,6 +102,13 @@ class SettingsAndCommissionsSeeder extends Seeder
                 'display_name' => 'Monthly Withdrawal Limit',
                 'group' => 'general',
                 'description' => 'Maximum amount a user can withdraw in a month.'
+            ],
+            [
+                'key' => 'admin_wallet_address',
+                'value' => 'TXYZ1234567890', // Example USDT wallet address
+                'display_name' => 'Admin Wallet Address',
+                'group' => 'general',
+                'description' => 'USDT wallet address for admin withdrawals.'
             ]
         ];
 
