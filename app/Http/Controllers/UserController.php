@@ -102,28 +102,24 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $user = $request->user()->load(['wallet']);
+        $user = $request->user()->load(['wallet', 'activeInvestment.plan']);
 
         $announcement = Announcement::where('active', true)->latest()->first();
         $teamCount = isset($user->team) ? count($user->team) : 0;
         $commissions = $user->referralCommissionByLevel();
 
-        // Earnings
         $allEarnings = $user->dailyEarnings();
         $today = now()->toDateString();
         $todayEarnings = $user->dailyEarnings($today, $today);
         $weekEarnings = $user->dailyEarnings(now()->subDays(7)->toDateString(), now()->toDateString());
 
-        // Optional: If you want only totals
         $totalEarnings = $allEarnings->sum('amount');
         $todayTotal = $todayEarnings->sum('amount');
         $weekTotal = $weekEarnings->sum('amount');
 
+        $activeInvestment = $user->activeInvestment()->with('plan')->first();
+        $hasActiveInvestment = (bool) $activeInvestment;
 
-        // Determine if user has an active investment plan
-        $hasActiveInvestment = $user->activeInvestment()->exists();
-
-        // Determine if the user can collect daily income today
         $canCollectDailyIncome = false;
         if ($hasActiveInvestment) {
             $alreadyCollected = $user->transactions()
@@ -134,12 +130,21 @@ class UserController extends Controller
             $canCollectDailyIncome = !$alreadyCollected;
         }
 
+        $activePlanInfo = null;
+        if ($activeInvestment && $activeInvestment->plan) {
+            $activePlanInfo = [
+                'name' => $activeInvestment->plan->name,
+                'end_date' => $activeInvestment->end_date->toDateString(),
+            ];
+        }
+
         return (new UserResource($user))->additional([
             'team_count' => $teamCount,
             'anouncement' => $announcement,
             'referral_earning' => $commissions,
             'has_active_investment' => $hasActiveInvestment,
             'can_collect_daily_income' => $canCollectDailyIncome,
+            'active_plan' => $activePlanInfo,
             'daily_earnings' => [
                 'total' => $totalEarnings,
                 'today' => $todayTotal,
@@ -148,6 +153,7 @@ class UserController extends Controller
             ],
         ]);
     }
+
 
 
     public function uploadAvatar(Request $request)
