@@ -47,7 +47,7 @@ class Wallet extends Model
 
     public function addEarnings($amount)
     {
-        $this->balance += $amount;
+      //  $this->balance += $amount;
         $this->total_earnings += $amount;
         $this->save();
     }
