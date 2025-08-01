@@ -251,4 +251,28 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
+    public function totalInvestment($maxLevel = 5)
+    {
+        // Collect all user IDs: current user + referrals
+        $ids = [$this->id];
+        $currentLevelUsers = [$this->id];
+
+        for ($level = 1; $level <= $maxLevel; $level++) {
+            $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($nextLevelUsers))
+                break;
+
+            $ids = array_merge($ids, $nextLevelUsers);
+            $currentLevelUsers = $nextLevelUsers;
+        }
+
+        // Sum only completed deposits
+        return \App\Models\Deposit::whereIn('user_id', $ids)
+            ->where('status', 'completed')
+            ->sum('amount');
+    }
+
 }

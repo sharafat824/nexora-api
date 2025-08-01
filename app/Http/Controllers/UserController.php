@@ -121,14 +121,23 @@ class UserController extends Controller
         $hasActiveInvestment = (bool) $activeInvestment;
 
         $canCollectDailyIncome = false;
+
         if ($hasActiveInvestment) {
+            // Check if already collected today
             $alreadyCollected = $user->transactions()
                 ->where('type', 'daily_income')
                 ->whereDate('created_at', $today)
                 ->exists();
 
-            $canCollectDailyIncome = !$alreadyCollected;
+            // Check if plan was activated today
+            $activatedToday = $activeInvestment->start_date->isSameDay($today);
+
+            // Can only collect if:
+            // 1. Not collected already
+            // 2. Plan was NOT started today
+            $canCollectDailyIncome = !$alreadyCollected && !$activatedToday;
         }
+
 
         $activePlanInfo = null;
         if ($activeInvestment && $activeInvestment->plan) {
@@ -138,6 +147,13 @@ class UserController extends Controller
             ];
         }
 
+        $totalInvestedWithReferrals = $user->totalInvestment();
+        $referralCommissionEarnings = $user->referralEarnings()
+            ->where('type', 'referral_commission')
+            ->sum('amount');
+        $userInvestment = $user->deposits()->completed()->sum('amount');
+
+
         return (new UserResource($user))->additional([
             'team_count' => $teamCount,
             'anouncement' => $announcement,
@@ -145,6 +161,9 @@ class UserController extends Controller
             'has_active_investment' => $hasActiveInvestment,
             'can_collect_daily_income' => $canCollectDailyIncome,
             'active_plan' => $activePlanInfo,
+            'total_investment' => $totalInvestedWithReferrals,
+            'user_investment' => $userInvestment,
+            'team_reward' => $referralCommissionEarnings,
             'daily_earnings' => [
                 'total' => $totalEarnings,
                 'today' => $todayTotal,

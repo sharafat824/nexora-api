@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/withdrawals', [WithdrawalController::class, 'index']);
     Route::post('/withdrawals', [WithdrawalController::class, 'store']);
     Route::post('/withdrawals/send-otp', [WithdrawalController::class, 'sendOtp']);
+    Route::get('/withdrawals/available', [WithdrawalController::class, 'available']);
 
 
     // Referral routes
@@ -89,9 +90,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/user/investment-plans', [\App\Http\Controllers\User\InvestmentController::class, 'plans']);
     Route::post('/user/investment-plans/activate', [\App\Http\Controllers\User\InvestmentController::class, 'activate']);
-  Route::post('user/collect-daily-income', [\App\Http\Controllers\User\DailyIncomeController::class, 'collect']);
+    Route::post('user/collect-daily-income', [\App\Http\Controllers\User\DailyIncomeController::class, 'collect']);
 
-  Route::get('admin/wallet/address', function () {
+    Route::get('admin/wallet/address', function () {
         $address = \App\Models\PlatformSetting::where('key', 'admin_wallet_address')->value('value');
         return response()->json(['address' => $address]);
     });

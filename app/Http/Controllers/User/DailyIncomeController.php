@@ -34,7 +34,7 @@ class DailyIncomeController extends Controller
 
         // Update wallet
         $user->wallet->addEarnings($income);
-
+        $user->wallet->increment('balance', $income);
         // Record transaction
         $user->transactions()->create([
             'amount' => $income,

@@ -61,12 +61,32 @@ class WithdrawalController extends Controller
         $total = $request->amount + $fee;
 
 
-        if ($wallet->balance < $total) {
-            return response()->json([
-                'message' => 'Insufficient balance'
-            ], 400);
+        // Lock principal if active investment
+        $lockedPrincipal = 0;
+        if ($user->activeInvestment()->exists()) {
+            $lockedPrincipal = $user->deposits()->completed()->sum('amount');
         }
 
+
+        $availableBalance = max(0, $wallet->balance - $lockedPrincipal);
+
+        // === VALIDATION ===
+        if ($user->activeInvestment()->exists() && $total > $availableBalance) {
+            return response()->json([
+                'message' => 'You can only withdraw your earnings while your plan is active.'
+            ], 422);
+        }
+
+        if ($total > $wallet->balance) {
+            return response()->json([
+                'message' => 'Insufficient balance.'
+            ], 422);
+        }
+        if ($total <= 0) {
+            return response()->json([
+                'message' => 'Invalid withdrawal amount.'
+            ], 422);
+        }
         // === NEW: Check daily and monthly withdrawal limits ===
         $dailyLimit = (float) PlatformSetting::getValue('withdrawal_limit_daily', 0);
         $monthlyLimit = (float) PlatformSetting::getValue('withdrawal_limit_monthly', 0);
@@ -151,6 +171,24 @@ class WithdrawalController extends Controller
         });
 
         return response()->json(['message' => 'OTP sent to your email']);
+    }
+
+    public function available(Request $request)
+    {
+        $user = $request->user();
+        $wallet = $user->wallet;
+
+        // If active plan, lock principal
+        $lockedPrincipal = 0;
+        if ($user->activeInvestment()->exists()) {
+            $lockedPrincipal = $user->deposits()->completed()->sum('amount');
+        }
+
+        $available = max(0, $wallet->balance - $lockedPrincipal);
+
+        return response()->json([
+            'available' => (float) $available,
+        ]);
     }
 
 }
