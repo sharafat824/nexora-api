@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,7 +29,14 @@ class UpdateWalletTotalEarnings extends Command
         $updatedCount = 0;
 
         foreach ($dailySums as $userId => $total) {
-            Wallet::where('user_id', $userId)->update(['total_earnings' => $total]);
+            $user = User::find($userId);
+            if (!$user) {
+                $this->error("User with ID {$userId} not found, skipping...");
+                continue;
+            }
+            $user->wallet->update(['total_earnings' => $total]);
+            $user->wallet->increment('balance', $total); // Ensure balance is also updated
+         //   Wallet::where('user_id', $userId)->update(['total_earnings' => $total]);
             $msg = "Updated wallet for user_id={$userId}, total_earnings={$total}";
             $this->line($msg);
             Log::info($msg);
