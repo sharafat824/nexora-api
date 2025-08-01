@@ -19,7 +19,7 @@ class UpdateWalletTotalEarnings extends Command
         Log::info('🔄 Starting wallet total_earnings recalculation');
 
         // Get totals grouped by user
-        $dailySums = Transaction::where('type', 'daily_income')
+        $dailySums = Transaction::whereIn('type', ['daily_income', 'referral_commission'])
             ->where('status', 'completed')
             ->select('user_id', DB::raw('SUM(amount) as total'))
             ->groupBy('user_id')
