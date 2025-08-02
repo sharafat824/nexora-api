@@ -253,8 +253,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function totalInvestment($maxLevel = 5)
     {
-        // Collect all user IDs: current user + referrals
-        $ids = [$this->id];
+        // Collect all user IDs referrals
+        $ids = [];
         $currentLevelUsers = [$this->id];
 
         for ($level = 1; $level <= $maxLevel; $level++) {
