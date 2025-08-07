@@ -23,14 +23,14 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             SettingsAndCommissionsSeeder::class,
-            InvestmentPlanSeeder::class,
-            ReferralSeeder::class,
+          //  InvestmentPlanSeeder::class,
+            //ReferralSeeder::class,
         ]);
-        User::updateOrCreate(['email' => 'admin@test.com'], [
-            'name' => 'Admin',
-            'username' => 'admin',
-            'password' => bcrypt('password'),
-            'is_admin' => true,
-        ]);
+        // User::updateOrCreate(['email' => 'admin@test.com'], [
+        //     'name' => 'Admin',
+        //     'username' => 'admin',
+        //     'password' => bcrypt('password'),
+        //     'is_admin' => true,
+        // ]);
     }
 }
