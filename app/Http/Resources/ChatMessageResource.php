@@ -20,7 +20,7 @@ class ChatMessageResource extends JsonResource
             'direction' => $this->direction,
             'read' => $this->read,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'file' => $this->file ? asset('storage/' . $this->file) : null,
+            'file' => $this->file ? asset('storage/app/public/' . $this->file) : null,
 
         ];
     }
