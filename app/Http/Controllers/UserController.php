@@ -120,7 +120,7 @@ class UserController extends Controller
         $activeInvestment = $user->activeInvestment()->with('plan')->first();
         $hasActiveInvestment = (bool) $activeInvestment;
 
-        $canCollectDailyIncome = false;
+        $canCollectDailyIncome = true;
 
         if ($hasActiveInvestment) {
             // Check if already collected today
@@ -149,7 +149,7 @@ class UserController extends Controller
 
         $totalInvestedWithReferrals = $user->totalInvestment();
         $referralCommissionEarnings = $user->referralEarnings()
-            ->where('type', 'referral_commission')
+            ->where('type', 'team_reward')
             ->sum('amount');
         $userInvestment = $user->deposits()->completed()->sum('amount');
 

@@ -23,7 +23,11 @@ class TransactionResource extends JsonResource
             'level' => $this->level,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'user' => UserResource::make($this->whenLoaded('user')),
-            'formatted_amount' => ($this->amount > 0 ? '+' : '').number_format($this->amount, 2)
+            'formatted_amount' => ($this->amount > 0 ? '+' : '') . number_format($this->amount, 2),
+            'from_user' => [
+                'id' => $this->referenceUser?->id,
+                'name' => $this->referenceUser?->name,
+            ],
         ];
     }
 }

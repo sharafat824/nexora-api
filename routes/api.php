@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['count' => $count]);
     });
     Route::get('earnings/daily', [TransactionController::class, 'dailyEarnings']);
+    Route::get('earnings/team-reward', [TransactionController::class, 'teamRewards']);
     Route::post('/user/profile/avatar', [UserController::class, 'uploadAvatar']);
     Route::get('/announcement', [UserController::class, 'announcement']);
     Route::get('/countries', function () {

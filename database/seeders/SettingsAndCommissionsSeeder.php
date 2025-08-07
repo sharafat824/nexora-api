@@ -69,6 +69,13 @@ class SettingsAndCommissionsSeeder extends Seeder
                 'description' => 'Users daily commission percentage.',
             ],
             [
+                'key' => 'direct_reward',
+                'value' => '5',
+                'display_name' => 'Direct Reward (%)',
+                'group' => 'general',
+                'description' => 'Users direct commission percentage.',
+            ],
+            [
                 'key' => 'min_deposit',
                 'value' => 20,
                 'display_name' => "Minimum Deposit",
@@ -121,11 +128,11 @@ class SettingsAndCommissionsSeeder extends Seeder
 
         // Referral Commission Levels
         $commissionLevels = [
-            ['level' => 1, 'percentage' => 8.00, 'type' => 'signup'],
-            ['level' => 2, 'percentage' => 5.00, 'type' => 'signup'],
-            ['level' => 3, 'percentage' => 3.00, 'type' => 'signup'],
-            ['level' => 4, 'percentage' => 2.00, 'type' => 'signup'],
-            ['level' => 5, 'percentage' => 1.00, 'type' => 'signup'],
+            ['level' => 1, 'percentage' => 8.00, 'type' => 'team_reward'],
+            ['level' => 2, 'percentage' => 5.00, 'type' => 'team_reward'],
+            ['level' => 3, 'percentage' => 3.00, 'type' => 'team_reward'],
+            ['level' => 4, 'percentage' => 2.00, 'type' => 'team_reward'],
+            ['level' => 5, 'percentage' => 1.00, 'type' => 'team_reward'],
         ];
 
         foreach ($commissionLevels as $commission) {

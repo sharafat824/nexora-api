@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use App\Services\TeamService;
+use App\Http\Controllers\Controller;
 
 class DailyIncomeController extends Controller
 {
-    public function collect(Request $request)
+    public function collect(Request $request,TeamService $teamService)
     {
         $user = $request->user();
         $today = Carbon::today();
@@ -34,13 +35,16 @@ class DailyIncomeController extends Controller
 
         // Update wallet
         $user->wallet->addEarnings($income);
-        // $user->wallet->increment('balance', $income);
+
         // Record transaction
         $user->transactions()->create([
             'amount' => $income,
             'type' => 'daily_income',
             'status' => 'completed'
         ]);
+
+        // ✅ Distribute team reward to uplines
+        $teamService->distributeTeamReward($user, $income);
 
         return response()->json([
             'message' => 'Daily income collected successfully',
