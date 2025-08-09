@@ -194,6 +194,7 @@ class User extends Authenticatable implements MustVerifyEmail
         // What *I* earned from each referred user (single grouped query)
         $totals = ReferralEarning::query()
             ->where('user_id', $this->id)
+            ->where('type', "referral_commission")
             ->whereIn('referred_user_id', $allIds)
             // ->where('status', 'completed') // if applicable
             ->selectRaw('referred_user_id, SUM(amount) AS total_commission, MAX(created_at) AS last_earning_at')
