@@ -167,44 +167,59 @@ class User extends Authenticatable implements MustVerifyEmail
     public function referralTeamWithCommission(int $maxLevel = 5)
     {
         $team = [];
-        $currentLevelUsers = [$this->id];
+        $levelMap = []; // user_id => level
+        $allIds = [];
+        $currentLevelIds = [$this->id];
 
-        // Define how much % commission per level
-        $levelCommissions = [
-            1 => 0.10, // 10%
-            2 => 0.05, // 5%
-            3 => 0.03, // 3%
-            4 => 0.02, // 2%
-            5 => 0.01  // 1%
-        ];
-
+        // BFS to collect IDs per level
         for ($level = 1; $level <= $maxLevel; $level++) {
-            $nextLevelUsers = self::whereIn('referred_by', $currentLevelUsers)->get();
-
-            if ($nextLevelUsers->isEmpty())
+            $ids = self::whereIn('referred_by', $currentLevelIds)->pluck('id')->all();
+            if (empty($ids))
                 break;
 
-            foreach ($nextLevelUsers as $user) {
-                // Get sum of deposits from this user
-                $baseAmount = $user->deposits()->sum('amount'); // Or use earnings
-                $commission = $baseAmount * ($levelCommissions[$level] ?? 0);
-
-                $team[] = [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'level' => $level,
-                    'commission' => $commission,
-                    'joined_at' => $user->created_at->format('Y-m-d H:i:s'),
-                ];
-            }
-
-            $currentLevelUsers = $nextLevelUsers->pluck('id')->toArray();
+            foreach ($ids as $id)
+                $levelMap[$id] = $level;
+            $allIds = array_merge($allIds, $ids);
+            $currentLevelIds = $ids;
         }
+
+        if (empty($allIds))
+            return [];
+
+        // Get user info in one query
+        $users = self::whereIn('id', $allIds)
+            ->get(['id', 'name', 'email', 'created_at'])
+            ->keyBy('id');
+
+        // What *I* earned from each referred user (single grouped query)
+        $totals = ReferralEarning::query()
+            ->where('user_id', $this->id)
+            ->whereIn('referred_user_id', $allIds)
+            // ->where('status', 'completed') // if applicable
+            ->selectRaw('referred_user_id, SUM(amount) AS total_commission, MAX(created_at) AS last_earning_at')
+            ->groupBy('referred_user_id')
+            ->get()
+            ->keyBy('referred_user_id');
+
+        foreach ($allIds as $id) {
+            $u = $users[$id];
+            $sum = (float) ($totals[$id]->total_commission ?? 0);
+            $team[] = [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+                'level' => $levelMap[$id],
+                'commission' => $sum,
+                'last_earning_at' => isset($totals[$id]) ? (string) $totals[$id]->last_earning_at : null,
+                'joined_at' => $u->created_at->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        // Optional: sort by commission desc
+   //     usort($team, fn($a, $b) => $b['commission'] <=> $a['commission']);
 
         return $team;
     }
-
     public function getTeamWithCommissionAttribute()
     {
         return $this->referralTeamWithCommission();
