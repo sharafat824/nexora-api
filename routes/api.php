@@ -11,6 +11,7 @@ use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\WithdrawalController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\PasswordResetController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 
@@ -31,6 +32,8 @@ Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleC
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::post('/password/forgot', [PasswordResetController::class, 'sendResetLink']);
+Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.reset');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/verify/send-otp', [AuthController::class, 'sendOtp']);
