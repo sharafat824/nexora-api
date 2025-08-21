@@ -26,11 +26,12 @@ class DatabaseSeeder extends Seeder
            InvestmentPlanSeeder::class,
           //  ReferralSeeder::class,
         ]);
-        User::updateOrCreate(['email' => 'admin@test.com'], [
+        User::updateOrCreate(['email' => 'admin@nexora.uk.com'], [
             'name' => 'Nexora Uk',
             'username' => 'admin',
             'password' => bcrypt('Nexora.uk@100%'),
             'is_admin' => true,
+            'email_verified_at' => now()
         ]);
     }
 }
