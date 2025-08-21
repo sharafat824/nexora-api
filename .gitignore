@@ -25,3 +25,4 @@ Thumbs.db
 /uploads
 .index.php
 /public/index.php
+.htaccess
