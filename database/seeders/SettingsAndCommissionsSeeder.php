@@ -61,13 +61,13 @@ class SettingsAndCommissionsSeeder extends Seeder
                 'group' => 'general',
                 'description' => 'Enable or disable daily earning feature for users.',
             ],
-            [
-                'key' => 'daily_commision',
-                'value' => '5',
-                'display_name' => 'Daily Commission (%)',
-                'group' => 'general',
-                'description' => 'Users daily commission percentage.',
-            ],
+            // [
+            //     'key' => 'daily_commision',
+            //     'value' => '5',
+            //     'display_name' => 'Daily Commission (%)',
+            //     'group' => 'general',
+            //     'description' => 'Users daily commission percentage.',
+            // ],
             [
                 'key' => 'direct_reward',
                 'value' => '5',
