@@ -70,12 +70,13 @@ class WithdrawalController extends Controller
 
         $availableBalance = max(0, $wallet->balance - $lockedPrincipal);
 
-        // Case 1: User has active investment
-        if ($user->activeInvestment()->exists()) {
+        // Reject if user has NO active investment
+        if (!$user->activeInvestment()->exists()) {
             return response()->json([
-                'message' => 'You can only withdraw your earnings while your plan is active.'
+                'message' => 'You can withdraw only if you have an active investment plan.'
             ], 422);
         }
+
 
         // Case 2: Requested amount exceeds available balance
         if ($total > $availableBalance) {
@@ -84,11 +85,12 @@ class WithdrawalController extends Controller
             ], 422);
         }
 
-        if ($total > $wallet->balance) {
-            return response()->json([
-                'message' => 'Insufficient balance.'
-            ], 422);
-        }
+        // if ($total > $wallet->balance) {
+        //     return response()->json([
+        //         'message' => 'Insufficient balance.'
+        //     ], 422);
+        // }
+
         if ($total <= 0) {
             return response()->json([
                 'message' => 'Invalid withdrawal amount.'
