@@ -245,6 +245,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $query = $this->transactions()
             ->where('type', 'daily_income')
+            ->orWhere('type', 'direct_reward')
             ->where('status', 'completed');
 
         if ($fromDate) {
