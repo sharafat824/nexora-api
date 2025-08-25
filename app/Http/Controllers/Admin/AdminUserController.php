@@ -138,7 +138,7 @@ class AdminUserController extends Controller
 
             $user->transactions()->create([
                 'amount' => $amount,
-                'type' => 'manual_adjustment',
+                'type' => 'direct_reward',
                 'status' => 'completed',
                 'description' => 'Manual wallet adjustment by admin',
             ]);
