@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Models\PlatformSetting;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
@@ -156,6 +157,7 @@ class UserController extends Controller
 
         return (new UserResource($user))->additional([
             'team_count' => $teamCount,
+            'telegram_link' => PlatformSetting::getValue('telegram_link'),
             'anouncement' => $announcement,
             'referral_earning' => $commissions,
             'has_active_investment' => $hasActiveInvestment,

@@ -116,6 +116,13 @@ class SettingsAndCommissionsSeeder extends Seeder
                 'display_name' => 'Admin Wallet Address',
                 'group' => 'general',
                 'description' => 'USDT wallet address for admin withdrawals.'
+            ],
+            [
+                'key' => 'telegram_link',
+                "value" => '',
+                'display_name' => 'Telegram Link',
+                'group' => 'general',
+                'description' => 'Telegram link.'
             ]
         ];
 
