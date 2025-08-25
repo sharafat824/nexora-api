@@ -132,8 +132,10 @@ class AdminUserController extends Controller
         try {
             if ($amount > 0) {
                 $wallet->deposit($amount);
+                $wallet->increment('total_earnings', $amount);
             } else {
                 $wallet->withdraw(abs($amount));
+                $wallet->decrement('total_earnings', abs($amount));
             }
 
             $user->transactions()->create([
