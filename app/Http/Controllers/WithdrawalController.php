@@ -172,11 +172,11 @@ class WithdrawalController extends Controller
         $otp = rand(100000, 999999);
 
         // Store in cache for 5 mins tied to user id
-        Cache::put('withdrawal_otp_' . $user->id, $otp, now()->addMinutes(5));
+        Cache::put('withdrawal_otp_' . $user->id, $otp, now()->addMinutes(15));
 
-        Mail::to($user->email)->queue(new WithdrawalOtpMail($otp));
+        // Mail::to($user->email)->queue(new WithdrawalOtpMail($otp));
 
-
+        Mail::to($user->email)->send(new WithdrawalOtpMail($otp));
         return response()->json(['message' => 'OTP sent to your email']);
     }
 

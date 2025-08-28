@@ -84,7 +84,7 @@ class AuthController extends Controller
         $otp = rand(100000, 999999);
         EmailVerification::updateOrCreate(
             ['user_id' => $user->id],
-            ['otp' => $otp, 'expires_at' => Carbon::now()->addMinutes(10)]
+            ['otp' => $otp, 'expires_at' => Carbon::now()->addMinutes(20)]
         );
 
         // Send OTP via email
