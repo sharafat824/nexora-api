@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Mail\WithdrawalOtpMail;
 use App\Models\PlatformSetting;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -173,11 +174,8 @@ class WithdrawalController extends Controller
         // Store in cache for 5 mins tied to user id
         Cache::put('withdrawal_otp_' . $user->id, $otp, now()->addMinutes(5));
 
-        // Send via email (simple)
-        Mail::raw("Your withdrawal OTP is: $otp", function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('Your Withdrawal OTP');
-        });
+        Mail::to($user->email)->queue(new WithdrawalOtpMail($otp));
+
 
         return response()->json(['message' => 'OTP sent to your email']);
     }

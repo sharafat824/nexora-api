@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OtpVerificationMail extends Mailable  implements ShouldQueue
+class WithdrawalOtpMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -29,7 +29,7 @@ class OtpVerificationMail extends Mailable  implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Nexora OTP Verification Code',
+            subject: 'Your Withdrawal OTP Code',
         );
     }
 
@@ -39,7 +39,7 @@ class OtpVerificationMail extends Mailable  implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.verify-otp',
+            view: 'emails.withdrawal-otp',
             with: ['otp' => $this->otp],
         );
     }
